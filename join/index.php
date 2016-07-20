@@ -2,37 +2,53 @@
     session_start();
     echo '<br>';
     echo '<br>';
-    echo '<br>';
-    echo '<br>';
 
     $error = array();
-    if (!empty($_POST)) {
-        // $_POSTが空じゃなかったら処理します
-        // if (!empty($_POST)) が処理されるときとは？
-        // $_POSTの中身が存在するとき = フォームのボタンが押されたときかつフォームの中身にデータが入力されているとき
-        echo '送信されたとき';
-        echo '<br>';
 
+    // 送信ボタンが押された時
+    if (!empty($_POST)) {
         // エラー項目の確認
         if ($_POST['nick_name'] == '') {
             $error['nick_name'] = 'blank';
-            echo '名前フォームが空だったとき';
         }
 
         if ($_POST['email'] == '') {
             $error['email'] = 'blank';
-            echo 'メールフォームが空だったとき';
         }
 
         if ($_POST['password'] == '') {
             $error['password'] = 'blank';
-            echo 'パスワードフォームが空だったとき';
         }
+
+        // 選択された画像の名前を取得
+        $fileName = $_FILES['picture_path']['name']; // $_FILESもスーパーグローバル変数
+        echo $fileName;
+        // 選択された画像の拡張子チェック
+        if (!empty($fileName)) {
+            $ext =substr($fileName, -3);
+            // 拡張子がjpgもしくはgif以外のデータならエラーを出す
+            if ($ext != 'jpg' && $ext != 'gif') {
+                $error['image'] = 'type';
+            }
+        }
+
+        // すべてのフォーム入力チェックを満たした状態でデータが入力されていれば
+        // エラーが一件もなければ画像アップロード等の処理をする
+        if (empty($error)) {
+            // 画像をアップロード
+            $image = date('YmdHis') . $_FILES['picture_path']['name'];
+
+            // move_uploaded_file()関数は指定した場所に指定した名前で画像をアップロードします。
+            move_uploaded_file($_FILES['picture_path']['tmp_name'], '../member_picture/' . $image);
+
+            // check.phpにデータを受け渡すための処理
+            $_SESSION['join'] = $_POST;
+            $_SESSION['join']['image'] = $image;
+            // header('Location: check.php');
+            // exit();
+        }
+
     }
-    // $_POSTが空だったら処理します
-    echo 'いつでも呼ばれる';
-
-
 
 ?>
 
@@ -90,7 +106,7 @@
     <div class="row">
       <div class="col-md-6 col-md-offset-3 content-margin-top">
         <legend>会員登録</legend>
-        <form method="post" action="" class="form-horizontal" role="form">
+          <form method="post" action="" class="form-horizontal" role="form" enctype="multipart/form-data">
           <!-- ニックネーム -->
           <div class="form-group">
             <label class="col-sm-4 control-label">ニックネーム</label>
@@ -108,8 +124,10 @@
             <label class="col-sm-4 control-label">メールアドレス</label>
             <div class="col-sm-8">
               <input type="email" name="email" class="form-control" placeholder="例： seed@nex.com">
-              <?php if($error['email'] == 'blank'): ?>
-                  <p class="error">メールアドレスを入力して下さい。</p>
+              <?php if(isset($error['email'])): ?>
+                  <?php if($error['email'] == 'blank'): ?>
+                      <p class="error">メールアドレスを入力して下さい。</p>
+                  <?php endif; ?>
               <?php endif; ?>
             </div>
           </div>
@@ -118,8 +136,10 @@
             <label class="col-sm-4 control-label">パスワード</label>
             <div class="col-sm-8">
               <input type="password" name="password" class="form-control" placeholder="">
-              <?php if($error['password'] == 'blank'): ?>
-                  <p class="error">パスワードを入力して下さい。</p>
+              <?php if(isset($error['password'])): ?>
+                  <?php if($error['password'] == 'blank'): ?>
+                      <p class="error">パスワードを入力して下さい。</p>
+                  <?php endif; ?>
               <?php endif; ?>
             </div>
           </div>
