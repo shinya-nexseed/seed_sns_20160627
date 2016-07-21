@@ -42,6 +42,18 @@
     // $_REQUEST
     // などなど
 
+    echo '<br>';
+    // sprintf()関数
+    // 複数の文字列を結合するための関数
+    $parag = sprintf('My %s is %s. Hello!', 'height' , '190cm');
+    echo $parag;
+
+    // sha1()関数
+    // 指定した文字列を暗号化 (ハッシュ化) してくれる関数
+    $str = sha1('hogehoge');
+    echo '<br>';
+    echo $str;
+
  ?>
  <!DOCTYPE html>
  <html lang="ja">
