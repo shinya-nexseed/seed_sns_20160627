@@ -1,5 +1,6 @@
 <?php
     session_start(); // $_SESSIONを使用する際は必ずこの関数を定義、一番上の行であること
+    require('../dbconnect.php');
     echo '<br>';
     echo '<br>';
 
@@ -29,6 +30,22 @@
             // 拡張子がjpgもしくはgif以外のデータならエラーを出す
             if ($ext != 'jpg' && $ext != 'gif' && $ext != 'png') {
                 $error['image'] = 'type';
+            }
+        }
+
+        // 重複アカウントのチェック
+        if (empty($error)) {
+            $sql = sprintf(
+                // 条件に一致し取得したデータの数を返すのがCOUNT()
+                'SELECT COUNT(*) AS cnt FROM members WHERE email="%s"',
+                mysqli_real_escape_string($db,$_POST['email'])
+            );
+            $record = mysqli_query($db,$sql) or die(mysqli_error($db));
+            $table = mysqli_fetch_assoc($record);
+            var_dump($table);
+
+            if ($table['cnt'] > 0) {
+                $error['email'] = 'duplicate';
             }
         }
 
@@ -137,6 +154,9 @@
               <?php if(isset($error['email'])): ?>
                   <?php if($error['email'] == 'blank'): ?>
                       <p class="error">メールアドレスを入力して下さい。</p>
+                  <?php endif; ?>
+                  <?php if ($error["email"] == 'duplicate'): ?>
+                      <p class="error">* 指定されたメールアドレスはすでに登録されています。</p>
                   <?php endif; ?>
               <?php endif; ?>
             </div>
