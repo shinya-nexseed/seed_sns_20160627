@@ -10,6 +10,7 @@
 					mysqli_real_escape_string($db, $_SESSION['id'])
 				);
 				$record = mysqli_query($db, $sql) or die(mysqli_error($db));
+				// ログインしているメンバー情報すべてが入る
 				$member = mysqli_fetch_assoc($record);
 		} else {
 				// ログインしていない
@@ -51,7 +52,7 @@
 	</div>
 	<div id="content">
 		<div style="text-align: right"><a href="logout.php">ログアウト</a></div>
-	<form action="" method="post">
+	<form action="sample_index.php" method="post">
 		<dl>
 			<dt><?php echo htmlspecialchars($member['nick_name']); ?>さん、メッセージをどうぞ</dt>
 			<dd>
@@ -68,14 +69,14 @@
 
 <?php while($post = mysqli_fetch_assoc($posts)): ?>
 	<div class="msg">
-		<img src="member_picture/<?php echo htmlspecialchars($post['picture_path'], ENT_QUOTES, 'UTF-8'); ?>" width="48" height="48" alt="<?php echo htmlspecialchars($post['nick_name'], ENT_QUOTES, 'UTF-8'); ?>" />
-		<p>
-			<?php echo htmlspecialchars($post['tweet'], ENT_QUOTES, 'UTF-8'); ?>
-			<span class="name">（<?php echo htmlspecialchars($post['nick_name'], ENT_QUOTES, 'UTF-8'); ?>）</span>
-		</p>
-		<p class="day">
-			<?php echo htmlspecialchars($post['created'], ENT_QUOTES, 'UTF-8'); ?>
-		</p>
+	  <img src="member_picture/<?php echo htmlspecialchars($post['picture_path'], ENT_QUOTES, 'UTF-8'); ?>" width="48" height="48" alt="<?php echo htmlspecialchars($post['nick_name'], ENT_QUOTES, 'UTF-8'); ?>" />
+	  <p>
+	    <?php echo htmlspecialchars($post['tweet'], ENT_QUOTES, 'UTF-8'); ?>
+	    <span class="name">（<?php echo htmlspecialchars($post['nick_name'], ENT_QUOTES, 'UTF-8'); ?>）</span>
+	  </p>
+	  <p class="day">
+	    <?php echo htmlspecialchars($post['created'], ENT_QUOTES, 'UTF-8'); ?>
+	  </p>
 	</div>
 <?php endwhile; ?>
 
