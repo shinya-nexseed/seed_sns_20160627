@@ -21,9 +21,10 @@
 		// 投稿を記録する
 		if (!empty($_POST)) {
 				if ($_POST['message'] != '') {
-						$sql = sprintf('INSERT INTO tweets SET member_id=%d, tweet="%s", created=NOW()',
+						$sql = sprintf('INSERT INTO tweets SET member_id=%d, tweet="%s", reply_tweet_id=%d, created=NOW()',
 							mysqli_real_escape_string($db, $member['member_id']),
-							mysqli_real_escape_string($db, $_POST['message'])
+							mysqli_real_escape_string($db, $_POST['message']),
+							mysqli_real_escape_string($db, $_POST['reply_tweet_id'])
 						);
 						mysqli_query($db, $sql) or die(mysqli_error($db));
 						header('Location: sample_index.php');
@@ -35,6 +36,18 @@
 		$sql = sprintf('SELECT m.nick_name, m.picture_path, t.* FROM members m, tweets t WHERE m.member_id=t.member_id ORDER BY t.created DESC');
 
 		$posts = mysqli_query($db, $sql) or die(mysqli_error($db));
+
+		// 返信の場合　
+		$message = "";
+		if (isset($_REQUEST['res'])) {
+				$sql = sprintf('SELECT m.nick_name, m.picture_path, t.* FROM members m, tweets t WHERE m.member_id=t.member_id AND t.tweet_id=%d ORDER BY t.created DESC',
+					mysqli_real_escape_string($db, $_REQUEST['res'])
+				);
+				$record = mysqli_query($db, $sql) or die(mysqli_error($db));
+				$table = mysqli_fetch_assoc($record);
+				// .を使って文字を連結してます (文字の足し算)
+				$message = '@' . $table['nick_name'] . ' ' . $table['tweet'] . ' -> ';
+		}
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -56,8 +69,8 @@
 		<dl>
 			<dt><?php echo htmlspecialchars($member['nick_name']); ?>さん、メッセージをどうぞ</dt>
 			<dd>
-			<textarea name="message" cols="50" rows="5"></textarea>
-			<input type="hidden" name="reply_post_id" value="<?php echo htmlspecialchars($_REQUEST['res'], ENT_QUOTES, 'UTF-8'); ?>" />
+			<textarea name="message" cols="50" rows="5"><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></textarea>
+			<input type="hidden" name="reply_tweet_id" value="<?php echo htmlspecialchars($_REQUEST['res'], ENT_QUOTES, 'UTF-8'); ?>" />
 			</dd>
 		</dl>
 		<div>
@@ -73,9 +86,17 @@
 	  <p>
 	    <?php echo htmlspecialchars($post['tweet'], ENT_QUOTES, 'UTF-8'); ?>
 	    <span class="name">（<?php echo htmlspecialchars($post['nick_name'], ENT_QUOTES, 'UTF-8'); ?>）</span>
+	    [<a href="sample_index.php?res=<?php echo htmlspecialchars($post['tweet_id'], ENT_QUOTES, 'UTF-8'); ?>">Re</a>]
 	  </p>
 	  <p class="day">
-	    <?php echo htmlspecialchars($post['created'], ENT_QUOTES, 'UTF-8'); ?>
+	  	<a href="sample_view.php?id=<?php echo htmlspecialchars($post['tweet_id'], ENT_QUOTES, 'UTF-8'); ?>">
+	  		<?php echo htmlspecialchars($post['created'], ENT_QUOTES, 'UTF-8'); ?>
+	  	</a>
+	  	<?php if($post['reply_tweet_id'] > 0): ?>
+					<a href="sample_view.php?id=<?php echo htmlspecialchars($post['reply_tweet_id'], ENT_QUOTES, 'UTF-8'); ?>">
+						送信元のメッセージ
+					</a>
+	  	<?php endif; ?>
 	  </p>
 	</div>
 <?php endwhile; ?>
