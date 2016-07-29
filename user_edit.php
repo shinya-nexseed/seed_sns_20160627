@@ -36,26 +36,27 @@
           // ニックネームの空チェック
           if ($_POST['nick_name'] == '') {
               // TODO : ニックネームが空の場合のエラー
-
+              $error['nick_name'] = 'blank';
           }
 
           // TODO : メールアドレスの空チェック
-          // if () {
-          //     $error['email'] = 'blank';
-          // }
+          if ($_POST['email'] == '') {
+              $error['email'] = 'blank';
+          }
 
           // 新規パスワードが空でなければ処理実行
           if (!empty($_POST['new_password'])) {
 
               // TODO : 新規パスワードが4文字以上かチェック
-              // if () < 4) {
-              //     $error['new_password'] = 'length';
-              // }
+              echo strlen($_POST['new_password']);
+              if (strlen($_POST['new_password']) < 4) {
+                  $error['new_password'] = 'length';
+              }
 
               // TODO : 新規パスワードと確認用パスワードが一致するかチェック
-              // if () {
-              //     $error['new_password'] = 'incorrect';
-              // }
+              if ($_POST['new_password'] != $_POST['confirm_password']) {
+                  $error['new_password'] = 'incorrect';
+              }
 
           // 新規パスワードが空の場合は入力された現在のパスワードを代入
           } else {
@@ -68,13 +69,14 @@
               $ext = substr($fileName, -3);
 
               // TODO : 画像の拡張子が「jpg」、「gif」、「png」、「JPG」、「PNG」かどうかチェック
-              // if () {
-              //     $error['picture_path'] = 'type';
-              // }
+              if ($ext != 'jpg' && $ext != 'gif' && $ext != 'png' && $ext != 'JPG' && $ext != 'PNG') {
+                  $error['picture_path'] = 'type';
+              }
           }
 
           // 重複アカウントのチェック
           if (empty($error)) {
+              // 入力されているメールアドレスと、DBに存在するログインユーザーのメールアドレスが違っていれば処理
               if ($_POST['email'] != $member['email']) {
                   $sql = sprintf(
                       'SELECT COUNT(*) AS cnt FROM members WHERE email="%s"',
@@ -83,9 +85,9 @@
                   $record = mysqli_query($db,$sql) or die(mysqli_error($db));
                   $table = mysqli_fetch_assoc($record);
                   // TODO : アカウントの取得結果が0以上かチェック
-                  // if () {
-                  //     $error['email'] = 'duplicate';
-                  // }
+                  if ($table['cnt'] > 0) {
+                      $error['email'] = 'duplicate';
+                  }
               }
           }
 
@@ -107,7 +109,15 @@
               // $sql = sprintf('UPDATE `members` SET `nick_name`="%s", `email`="%s", `password`="%s", `picture_path`="%s", modified= WHERE ``=%d',
 
               //   );
-              // mysqli_query($db, $sql) or die(mysqli_error($db));
+    $sql = sprintf('UPDATE `members` SET `nick_name`="%s", `email`="%s", `password`="%s", `picture_path`="%s", modified=NOW() WHERE `member_id`=%d',
+                      $_POST['nick_name'],
+                      $_POST['email'],
+                      sha1($_POST['new_password']),
+                      $picture,
+                      $_SESSION['id']
+                  );
+              echo $sql;
+              mysqli_query($db, $sql) or die(mysqli_error($db));
           }
 
       // 現在のパスワードが間違っていた場合
